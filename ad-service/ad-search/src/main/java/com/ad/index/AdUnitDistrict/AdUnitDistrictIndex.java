@@ -1,14 +1,18 @@
 package com.ad.index.AdUnitDistrict;
 
 import com.ad.index.IndexAware;
+import com.ad.search.vo.feature.DistrictFeature;
 import com.ad.utils.CommonUtils;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.stereotype.Component;
 
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentSkipListSet;
+import java.util.stream.Collectors;
 
 /**
  * 地域索引
@@ -59,5 +63,14 @@ public class AdUnitDistrictIndex implements IndexAware<String, Set<Long>> {
             districts.remove(key);
         }
         log.info("AdUnitDistrictIndex, after delete: {}", unitDistrictMap);
+    }
+
+    public boolean match(Long adUnitId, List<DistrictFeature.ProvinceAndCity> districts) {
+        if (unitDistrictMap.containsKey(adUnitId) && CollectionUtils.isNotEmpty(unitDistrictMap.get(adUnitId))) {
+            Set<String> unitDistricts = unitDistrictMap.get(adUnitId);
+            List<String> targetDistricts = districts.stream().map(d -> CommonUtils.stringConcat(d.getProvince(), d.getCity())).collect(Collectors.toList());
+            return CollectionUtils.isSubCollection(targetDistricts, unitDistricts);
+        }
+        return false;
     }
 }
